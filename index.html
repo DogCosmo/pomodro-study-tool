@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pomodoro Study Timer & To-Do List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; background: #ffd5dc; margin: 0; padding: 0; }
+        .container { max-width: 400px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}
+        h1 { text-align: center; margin-bottom: 24px; }
+        .timer { text-align: center; margin-bottom: 24px; }
+        .timer-display { font-size: 48px; margin-bottom: 16px; }
+        .timer-controls button { margin: 0 8px; padding: 8px 16px; font-size: 16px; }
+        .todo-section { margin-top: 32px; }
+        .todo-input { width: 70%; padding: 8px; }
+        .todo-add { padding: 8px 16px; }
+        ul.todo-list { list-style: none; padding: 0; margin-top: 16px; }
+        ul.todo-list li { background: hsl(233, 71%, 88%); margin-bottom: 8px; padding: 8px; border-radius: 4px; display: flex; align-items: center; }
+        ul.todo-list li.completed { text-decoration: line-through; color: #888; }
+        .todo-check { margin-right: 12px; }
+        .todo-remove { margin-left: auto; background: #ff6b6b; color: #fff; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pomodoro Study Timer</h1>
+        <div class="timer">
+            <div class="timer-display" id="timer">25:00</div>
+            <div class="timer-controls">
+                <button id="start">Start</button>
+                <button id="pause">Pause</button>
+                <button id="reset">Reset</button>
+            </div>
+            <div style="margin-top:12px;">
+                <button id="pomodoro">Pomodoro</button>
+                <button id="shortBreak">Short Break</button>
+                <button id="longBreak">Long Break</button>
+            </div>
+        </div>
+        <div class="todo-section">
+            <h2>To-Do List</h2>
+            <input type="text" id="todo-input" class="todo-input" placeholder="Add a task...">
+            <button id="todo-add" class="todo-add">Add</button>
+            <ul id="todo-list" class="todo-list"></ul>
+        </div>
+    </div>
+    <script>
+        let timerDisplay = document.getElementById('timer');
+        let startBtn = document.getElementById('start');
+        let pauseBtn = document.getElementById('pause');
+        let resetBtn = document.getElementById('reset');
+        let pomodoroBtn = document.getElementById('pomodoro');
+        let shortBreakBtn = document.getElementById('shortBreak');
+        let longBreakBtn = document.getElementById('longBreak');
+
+        let durations = { pomodoro: 25*60, shortBreak: 5*60, longBreak: 15*60 };
+        let currentMode = 'pomodoro';
+        let tißmeLeft = durations[currentMode];
+        let timerInterval = null;
+        let isRunning = false;
+
+        function updateDisplay() {
+            let min = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            let sec = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${min}:${sec}`;
+        }
+
+        function startTimer() {
+            if (!isRunning && timeLeft > 0) {
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        alert('Time is up!');
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = durations[currentMode];
+            updateDisplay();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            resetTimer();
+        }
+        startBtn.onclick = startTimer;
+        pauseBtn.onclick = pauseTimer;
+        resetBtn.onclick = resetTimer;
+        pomodoroBtn.onclick = () => setMode('pomodoro');
+        shortBreakBtn.onclick = () => setMode('shortBreak');
+        longBreakBtn.onclick = () => setMode('longBreak');
+        updateDisplay();
+        const todoInput = document.getElementById('todo-input');
+        const todoAdd = document.getElementById('todo-add');
+        const todoList = document.getElementById('todo-list');
+
+        function addTodo() {
+            const task = todoInput.value.trim();
+            if (task) {
+                const li = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'todo-check';
+                checkbox.onclick = () => {
+                    li.classList.toggle('completed', checkbox.checked);
+                };
+                li.appendChild(checkbox);
+
+                const span = document.createElement('span');
+                span.textContent = task;
+                li.appendChild(span);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.className = 'todo-remove';
+                removeBtn.onclick = () => li.remove();
+                li.appendChild(removeBtn);
+
+                todoList.appendChild(li);
+                todoInput.value = '';
+            }
+        }
+        todoAdd.onclick = addTodo;
+        todoInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addTodo();
+        });
+    </script>
+</body>
+</html>
